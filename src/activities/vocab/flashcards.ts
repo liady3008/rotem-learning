@@ -3,7 +3,7 @@ import { say } from '../../core/audio';
 import { SPEAKER } from '../../core/fx';
 import { str } from '../../core/i18n';
 import { esc } from '../../core/util';
-import { wordsOf } from './common';
+import { spoken, wordsOf } from './common';
 
 export const flashcards: ActivityType = {
   label: (s) => s.stepFlash,
@@ -15,7 +15,7 @@ export const flashcards: ActivityType = {
 
     return {
       onEnter() {
-        say(words[0].en);
+        say(spoken(words[0]));
       },
       render() {
         const s = str();
@@ -23,7 +23,7 @@ export const flashcards: ActivityType = {
         const hasTr = !!w.tr;
         const last = card === words.length - 1;
         const dots = words.map((_, k) => `<i class="${k < card ? 'past' : k === card ? 'on' : ''}"></i>`).join('');
-        const hear = `<button class="hear" data-act="hear" data-w="${esc(w.en)}">${SPEAKER}<span>${s.hear}</span></button>`;
+        const hear = `<button class="hear" data-act="hear" data-w="${esc(spoken(w))}">${SPEAKER}<span>${s.hear}</span></button>`;
         const face = flipped
           ? `<div class="card flashcard back">
               <div class="small">${hasTr ? s.flashBackLabel : ''}</div>
@@ -60,7 +60,7 @@ export const flashcards: ActivityType = {
           card++;
           flipped = false;
           ctx.rerender(true);
-          say(words[card].en);
+          say(spoken(words[card]));
         }
       },
     };

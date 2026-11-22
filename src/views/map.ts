@@ -98,17 +98,89 @@ const adventure: Scenery = ({ H, pts, route, rng }) => {
   return { svg: s, bridge };
 };
 
-const THEMES: Record<string, Scenery> = { adventure };
+/** Everything a visual theme decides about the map: scenery, route and node colours, and the character. */
+interface MapTheme {
+  scenery: Scenery;
+  route: { edge: string; fill: string; dash: string; dashOpacity: number; filter?: string };
+  node: { done: string; cur: string; lock: string; ring: string; lockFill: string; check: string; ink: string };
+  hiker: (x: number, y: number) => string;
+}
 
-function node(cx: number, cy: number, state: 'done' | 'cur' | 'lock', label: string, aria: string, act: string, extra: string, digit: string, stars: number, hasStars: boolean): string {
-  const fill = state === 'done' ? '#5fa85a' : state === 'cur' ? '#ffc531' : '#cfd8e0';
+const adventureHiker = (x: number, y: number): string =>
+  `<g transform="translate(${x} ${y})"><ellipse cx="0" cy="36" rx="13" ry="3.5" fill="rgba(23,50,77,.25)"/><rect x="-15" y="16" width="7" height="15" rx="3.5" fill="#ffc531" stroke="#17324d" stroke-width="2.2"/><rect x="-9" y="15" width="18" height="21" rx="7" fill="#e8512f" stroke="#17324d" stroke-width="2.5"/><circle cx="0" cy="8" r="9" fill="#f6d3ad" stroke="#17324d" stroke-width="2.5"/><path d="M-9 7 C-10 -4 10 -4 9 7 C5 2 -5 2 -9 7Z" fill="#6b3b1f" stroke="#17324d" stroke-width="2"/></g>`;
+
+/** Night restaurant: dark floor, neon route, tables with plates, a glowing cloche over the final node. */
+const restaurant: Scenery = ({ H, pts, rng, route }) => {
+  const n = pts.length;
+  const top = pts[n - 1];
+  let s = `<defs><linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1259"/><stop offset=".45" stop-color="#150d33"/><stop offset="1" stop-color="#0f0a24"/></linearGradient>
+    <radialGradient id="spot" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fe2c55" stop-opacity=".35"/><stop offset="1" stop-color="#fe2c55" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  s += `<rect width="${W}" height="${H}" fill="url(#floor)"/>`;
+  s += `<ellipse cx="${top.x}" cy="${top.y + 10}" rx="170" ry="130" fill="url(#spot)"/>`;
+  // neon cloche (serving dome) behind the final node
+  s += `<g filter="url(#glow)" fill="none" stroke="#25f4ee" stroke-width="4" stroke-linecap="round"><path d="M${top.x - 78} ${top.y + 58} A78 78 0 0 1 ${top.x + 78} ${top.y + 58}"/><path d="M${top.x - 94} ${top.y + 62} H${top.x + 94}"/><circle cx="${top.x}" cy="${top.y - 28}" r="7" stroke="#fe2c55"/></g>`;
+  // sparkles
+  for (let k = 0; k < 18; k++) {
+    const x = 14 + rng() * (W - 28);
+    const y = 10 + rng() * (H - 20);
+    const r = 2 + rng() * 3.5;
+    const c = rng() < 0.5 ? '#25f4ee' : '#fe2c55';
+    s += `<path d="M${x} ${y - r * 2} L${x + r * 0.6} ${y - r * 0.6} L${x + r * 2} ${y} L${x + r * 0.6} ${y + r * 0.6} L${x} ${y + r * 2} L${x - r * 0.6} ${y + r * 0.6} L${x - r * 2} ${y} L${x - r * 0.6} ${y - r * 0.6} Z" fill="${c}" opacity="${(0.25 + rng() * 0.5).toFixed(2)}"/>`;
+  }
+  // tables with plates, only on free floor
+  const taken: Pt[] = [...sample(route), ...pts];
+  let placed = 0;
+  for (let tries = 0; tries < 500 && placed < n * 2 + 2; tries++) {
+    const x = 34 + rng() * (W - 68);
+    const y = top.y + 120 + rng() * (H - top.y - 140);
+    if (taken.some((p) => dist(p, { x, y }) < 62)) continue;
+    s += `<g opacity=".9"><circle cx="${x}" cy="${y}" r="26" fill="#241a52" stroke="#25f4ee" stroke-width="2" opacity=".55"/><circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#fe2c55" stroke-width="2" opacity=".7"/><circle cx="${x}" cy="${y}" r="7" fill="#fe2c55" opacity=".25"/></g>`;
+    taken.push({ x, y });
+    placed++;
+  }
+  return { svg: s, bridge: '' };
+};
+
+const chefHat = (x: number, y: number): string =>
+  `<g transform="translate(${x} ${y})"><ellipse cx="0" cy="36" rx="13" ry="3.5" fill="rgba(0,0,0,.45)"/><rect x="-9" y="15" width="18" height="21" rx="7" fill="#ffffff" stroke="#0f0a24" stroke-width="2.5"/><path d="M-4 17 L0 24 L4 17" fill="#fe2c55" stroke="#0f0a24" stroke-width="1.5" stroke-linejoin="round"/><circle cx="0" cy="8" r="9" fill="#f6d3ad" stroke="#0f0a24" stroke-width="2.5"/><path d="M-11 2 C-16 -8 -8 -14 -3 -11 C-1 -17 6 -16 6 -11 C12 -13 17 -6 11 2 Z" fill="#ffffff" stroke="#0f0a24" stroke-width="2.5" stroke-linejoin="round"/><rect x="-11" y="1" width="22" height="4" rx="1.5" fill="#fe2c55" stroke="#0f0a24" stroke-width="1.5"/></g>`;
+
+const THEMES: Record<string, MapTheme> = {
+  adventure: {
+    scenery: adventure,
+    route: { edge: '#17324d', fill: '#fff3c4', dash: '#17324d', dashOpacity: 0.55 },
+    node: { done: '#5fa85a', cur: '#ffc531', lock: '#cfd8e0', ring: '#17324d', lockFill: '#8a9bab', check: '#ffffff', ink: '#17324d' },
+    hiker: adventureHiker,
+  },
+  'tiktok-restaurant': {
+    scenery: restaurant,
+    route: { edge: '#fe2c55', fill: '#25f4ee', dash: '#0f0a24', dashOpacity: 0.7, filter: 'url(#glow)' },
+    node: { done: '#5cf2a5', cur: '#25f4ee', lock: '#3a2f6e', ring: '#f4f0ff', lockFill: '#8a7fd0', check: '#0f0a24', ink: '#0f0a24' },
+    hiker: chefHat,
+  },
+};
+
+function node(
+  th: MapTheme['node'],
+  cx: number,
+  cy: number,
+  state: 'done' | 'cur' | 'lock',
+  label: string,
+  aria: string,
+  act: string,
+  extra: string,
+  glyph: string,
+  stars: number,
+  hasStars: boolean,
+): string {
+  const fill = state === 'done' ? th.done : state === 'cur' ? th.cur : th.lock;
   let s = `<g class="node ${state === 'cur' ? 'cur' : ''}" role="button" tabindex="0" ${extra} data-act="${act}" aria-label="${esc(aria)}">`;
-  if (state === 'cur') s += `<circle class="pulse" cx="${cx}" cy="${cy}" r="30" fill="#ffc531"/>`;
-  s += `<circle class="nring" cx="${cx}" cy="${cy}" r="25" fill="${fill}" stroke="#17324d" stroke-width="3.5"/>`;
-  if (state === 'done') s += `<path d="M${cx - 10} ${cy} l7 8 l13 -16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (state === 'cur') s += `<circle class="pulse" cx="${cx}" cy="${cy}" r="30" fill="${th.cur}"/>`;
+  s += `<circle class="nring" cx="${cx}" cy="${cy}" r="25" fill="${fill}" stroke="${th.ring}" stroke-width="3.5"/>`;
+  if (state === 'done') s += `<path d="M${cx - 10} ${cy} l7 8 l13 -16" fill="none" stroke="${th.check}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
   else if (state === 'lock')
-    s += `<rect x="${cx - 9}" y="${cy - 3}" width="18" height="14" rx="3" fill="#8a9bab" stroke="#17324d" stroke-width="2"/><path d="M${cx - 5} ${cy - 3} v-5 a5 5 0 0 1 10 0 v5" fill="none" stroke="#17324d" stroke-width="2.5"/>`;
-  else s += digit;
+    s += `<rect x="${cx - 9}" y="${cy - 3}" width="18" height="14" rx="3" fill="${th.lockFill}" stroke="${th.ring}" stroke-width="2"/><path d="M${cx - 5} ${cy - 3} v-5 a5 5 0 0 1 10 0 v5" fill="none" stroke="${th.ring}" stroke-width="2.5"/>`;
+  else s += glyph;
   s += `<text class="nlabel" x="${cx}" y="${cy + 46}">${esc(label)}</text>`;
   if (hasStars) s += `<text class="nstars" x="${cx}" y="${cy + 64}">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</text>`;
   return s + '</g>';
@@ -116,6 +188,7 @@ function node(cx: number, cy: number, state: 'done' | 'cur' | 'lock', label: str
 
 export function mapSVG(unit: Unit): string {
   const s = str();
+  const th = THEMES[unit.theme] ?? THEMES.adventure;
   const total = unit.stations.length + (unit.summit ? 1 : 0);
   const H = TOP + BOTTOM + (total - 1) * STEP;
   const pts: Pt[] = Array.from({ length: total }, (_, i) => ({ x: i % 2 === 0 ? 95 : 265, y: H - BOTTOM - i * STEP }));
@@ -125,11 +198,12 @@ export function mapSVG(unit: Unit): string {
     return [a, { x: a.x, y: mid }, { x: p.x, y: mid }, p];
   });
   const rng = seeded(unit.id);
-  const { svg: scenery, bridge } = (THEMES[unit.theme] ?? adventure)({ unit, H, pts, route, rng });
+  const { svg: scenery, bridge } = th.scenery({ unit, H, pts, route, rng });
 
   const d = `M${pts[0].x} ${pts[0].y} ` + route.map((c) => `C ${c[1].x} ${c[1].y} ${c[2].x} ${c[2].y} ${c[3].x} ${c[3].y}`).join(' ');
+  const r = th.route;
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${s.ariaMap}">${scenery}`;
-  svg += `<path d="${d}" fill="none" stroke="#17324d" stroke-width="20" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff3c4" stroke-width="14" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#17324d" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 9" opacity=".55"/>`;
+  svg += `<g ${r.filter ? `filter="${r.filter}"` : ''}><path d="${d}" fill="none" stroke="${r.edge}" stroke-width="20" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${r.fill}" stroke-width="14" stroke-linecap="round"/></g><path d="${d}" fill="none" stroke="${r.dash}" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 9" opacity="${r.dashOpacity}"/>`;
   svg += bridge;
 
   const firstOpen = unit.stations.findIndex((st) => !isDone(unit.id, st.id));
@@ -138,7 +212,7 @@ export function mapSVG(unit: Unit): string {
     const done = isDone(unit.id, st.id);
     const state = done ? 'done' : open ? 'cur' : 'lock';
     const digit = `<text class="ndigit" x="${pts[i].x}" y="${pts[i].y + 1}">${i + 1}</text>`;
-    svg += node(pts[i].x, pts[i].y, state, st.name, s.ariaStation(i + 1, st.name, done, !open), 'open', `data-id="${esc(st.id)}"`, digit, starsOf(unit.id, st.id), done);
+    svg += node(th.node, pts[i].x, pts[i].y, state, st.name, s.ariaStation(i + 1, st.name, done, !open), 'open', `data-id="${esc(st.id)}"`, digit, starsOf(unit.id, st.id), done);
   });
   let hiker: Pt | null = firstOpen >= 0 ? pts[firstOpen] : null;
   if (unit.summit) {
@@ -148,14 +222,14 @@ export function mapSVG(unit: Unit): string {
     const done = isDone(unit.id, sm.id);
     const cx = pts[i].x;
     const cy = pts[i].y;
-    const flag = `<path d="M${cx - 6} ${cy + 12} V${cy - 12} L${cx + 13} ${cy - 6} L${cx - 6} ${cy}" fill="${done ? '#e8512f' : '#fff'}" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/>`;
-    svg += node(cx, cy, done ? 'done' : open ? 'cur' : 'lock', sm.name, s.ariaSummit(done, !open), 'summit', '', flag, starsOf(unit.id, sm.id), done);
+    const flag = `<path d="M${cx - 6} ${cy + 12} V${cy - 12} L${cx + 13} ${cy - 6} L${cx - 6} ${cy}" fill="${done ? '#e8512f' : '#fff'}" stroke="${th.node.ink}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    svg += node(th.node, cx, cy, done ? 'done' : open ? 'cur' : 'lock', sm.name, s.ariaSummit(done, !open), 'summit', '', flag, starsOf(unit.id, sm.id), done);
     if (firstOpen < 0 && !done) hiker = pts[i];
   }
   if (hiker) {
     const hx = hiker.x - (hiker.x > 180 ? -38 : 38);
     const hy = hiker.y - 30;
-    svg += `<g class="hiker" pointer-events="none"><g transform="translate(${hx} ${hy})"><ellipse cx="0" cy="36" rx="13" ry="3.5" fill="rgba(23,50,77,.25)"/><rect x="-15" y="16" width="7" height="15" rx="3.5" fill="#ffc531" stroke="#17324d" stroke-width="2.2"/><rect x="-9" y="15" width="18" height="21" rx="7" fill="#e8512f" stroke="#17324d" stroke-width="2.5"/><circle cx="0" cy="8" r="9" fill="#f6d3ad" stroke="#17324d" stroke-width="2.5"/><path d="M-9 7 C-10 -4 10 -4 9 7 C5 2 -5 2 -9 7Z" fill="#6b3b1f" stroke="#17324d" stroke-width="2"/></g></g>`;
+    svg += `<g class="hiker" pointer-events="none">${th.hiker(hx, hy)}</g>`;
   }
   return svg + '</svg>';
 }

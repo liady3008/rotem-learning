@@ -15,4 +15,7 @@ export function wordsOf(def: ActivityDef): Word[] {
 export const poolOf = (def: ActivityDef, words: Word[]): Word[] => (def.pool as Word[] | undefined) ?? words;
 
 /** What the learner sees as the "other side" of a word: the translation if the unit has one, otherwise the meaning in English. */
+/** The text to read aloud and to type for a word. */
+export const spoken = (w: Word): string => w.typed ?? w.en;
+
 export const otherSide = (w: Word): string => w.tr ?? w.def;

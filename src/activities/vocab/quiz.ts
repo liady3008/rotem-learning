@@ -4,7 +4,7 @@ import { SPEAKER } from '../../core/fx';
 import { str } from '../../core/i18n';
 import type { Word } from '../../core/types';
 import { esc, pick, shuffle } from '../../core/util';
-import { poolOf, wordsOf } from './common';
+import { poolOf, spoken, wordsOf } from './common';
 
 type QType = 'en2tr' | 'def2en' | 'tr2en' | 'sent';
 
@@ -21,7 +21,7 @@ interface Item {
   retry: boolean;
 }
 
-function makeItem(type: QType, w: Word, pool: Word[], retry = false): Item {
+export function makeItem(type: QType, w: Word, pool: Word[], retry = false): Item {
   let opts: Opt[];
   if (type === 'sent') {
     opts = [{ label: w.en, correct: true, en: true }, ...w.sentence!.wrong.map((d) => ({ label: d, correct: false, en: true }))];
@@ -29,7 +29,12 @@ function makeItem(type: QType, w: Word, pool: Word[], retry = false): Item {
     const ds = pick(pool.filter((x) => x.tr && x.tr !== w.tr), 2, [w]);
     opts = [{ label: w.tr!, correct: true, en: false }, ...ds.map((d) => ({ label: d.tr!, correct: false, en: false }))];
   } else {
-    const ds = pick(pool, 2, [w]);
+    // two words can share one English meaning (for example feed and serve); never offer the twin as a wrong answer
+    const ds = pick(
+      pool.filter((x) => type !== 'def2en' || x.def !== w.def),
+      2,
+      [w],
+    );
     opts = [{ label: w.en, correct: true, en: true }, ...ds.map((d) => ({ label: d.en, correct: false, en: true }))];
   }
   return { type, w, pool, opts: shuffle(opts), retry };
@@ -81,7 +86,7 @@ export const quiz: ActivityType = {
       i++;
       if (i >= queue.length) return ctx.complete({ first, total });
       ctx.rerender(true);
-      if (queue[i].type === 'en2tr') say(queue[i].w.en);
+      if (queue[i].type === 'en2tr') say(spoken(queue[i].w));
     }
 
     function answer(k: number): void {
@@ -92,7 +97,7 @@ export const quiz: ActivityType = {
       if (it.opts[k].correct) {
         if (!it.retry) first++;
         chimeGood();
-        say(it.w.en);
+        say(spoken(it.w));
         const t = ++token;
         setTimeout(() => {
           if (ctx.active() && token === t) next();
@@ -106,7 +111,7 @@ export const quiz: ActivityType = {
 
     return {
       onEnter() {
-        if (queue[0]?.type === 'en2tr') say(queue[0].w.en);
+        if (queue[0]?.type === 'en2tr') say(spoken(queue[0].w));
       },
       render() {
         const s = str();
@@ -117,7 +122,7 @@ export const quiz: ActivityType = {
         let prompt: string;
         if (it.type === 'en2tr') {
           instr = s.qEn2Tr;
-          prompt = `<div class="en word" lang="en">${esc(it.w.en)}</div><button class="hear" data-act="hear" data-w="${esc(it.w.en)}">${SPEAKER}<span>${s.hear}</span></button>`;
+          prompt = `<div class="en word" lang="en">${esc(it.w.en)}</div><button class="hear" data-act="hear" data-w="${esc(spoken(it.w))}">${SPEAKER}<span>${s.hear}</span></button>`;
         } else if (it.type === 'def2en') {
           instr = s.qDef2En;
           prompt = `<div class="defbox" lang="en">${esc(it.w.def)}</div>`;
@@ -126,7 +131,7 @@ export const quiz: ActivityType = {
           prompt = `<div class="tr hword" lang="${trLang}">${esc(it.w.tr!)}</div>`;
         } else {
           instr = s.qSent;
-          prompt = `<div class="sent" lang="en">${esc(it.w.sentence!.text).replace('___', '<span class="gap"></span>')}</div>`;
+          prompt = `<div class="sent" lang="en">${esc(it.w.sentence!.text).replace('___', '<span class="gap"></span>\u2060')}</div>`;
         }
         const opts = it.opts
           .map((o, k) => {

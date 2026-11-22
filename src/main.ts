@@ -1,7 +1,7 @@
 import './styles/main.css';
 import './activities';
 import { say, stopSpeech } from './core/audio';
-import { APP_LANG, setLang, str } from './core/i18n';
+import { APP_LANG, setLang, setOverrides, str } from './core/i18n';
 import { toast } from './core/fx';
 import { Session } from './core/session';
 import { isSoundOn, isStationOpen, isSummitOpen, resetUnit, toggleSound, unitStars } from './core/storage';
@@ -44,6 +44,7 @@ function barHTML(unit: Unit | undefined): string {
 function render(top = false): void {
   const unit = currentUnit();
   setLang(unit ? unit.lang : APP_LANG);
+  setOverrides(unit?.text);
   document.documentElement.dataset.theme = unit?.theme ?? 'adventure';
   const body = session ? sessionHTML(session) : unit ? unitHTML(unit) : homeHTML();
   app.innerHTML = barHTML(unit) + body + (sheet && unit ? sheetHTML(unit, sheet) : '');
@@ -113,7 +114,7 @@ function act(name: string, d: DOMStringMap, el: HTMLElement): void {
       if (w) {
         sheet = w;
         render();
-        say(w.en);
+        say(w.typed ?? w.en);
       }
       return;
     }

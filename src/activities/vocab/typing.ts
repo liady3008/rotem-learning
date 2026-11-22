@@ -3,7 +3,7 @@ import { chimeGood, chimeSoft, say } from '../../core/audio';
 import { toast } from '../../core/fx';
 import { str } from '../../core/i18n';
 import { esc, shuffle } from '../../core/util';
-import { otherSide, wordsOf } from './common';
+import { otherSide, spoken, wordsOf } from './common';
 
 type Status = null | 'wrong' | 'ok' | 'reveal';
 
@@ -26,10 +26,10 @@ export const typing: ActivityType = {
 
     function check(): void {
       sync();
-      const w = queue[i].en;
+      const w = spoken(queue[i]);
       const answer = val.trim().toLowerCase().replace(/\s+/g, ' ');
       if (!answer) return toast(str().typeEmpty);
-      if (answer === w.toLowerCase()) {
+      if (answer === w.toLowerCase() || answer === queue[i].en.toLowerCase()) {
         status = 'ok';
         chimeGood();
         say(w);
@@ -60,9 +60,10 @@ export const typing: ActivityType = {
         const s = str();
         const w = queue[i];
         const total = queue.length;
-        const letters = [...w.en].filter((c) => c !== ' ').length;
+        const target = spoken(w);
+        const letters = [...target].filter((c) => c !== ' ').length;
         let shown = 0;
-        const boxes = [...w.en]
+        const boxes = [...target]
           .map((c) => {
             if (c === ' ') return '<span class="bx gapx"></span>';
             shown++;
@@ -74,7 +75,7 @@ export const typing: ActivityType = {
           .join('');
         const finished = status === 'ok' || status === 'reveal';
         let fb = '<div class="feedback" aria-live="polite"></div>';
-        if (status === 'ok') fb = `<div class="feedback good" aria-live="polite">${s.cheers[(i + w.en.length) % s.cheers.length]}</div>`;
+        if (status === 'ok') fb = `<div class="feedback good" aria-live="polite">${s.cheers[(i + target.length) % s.cheers.length]}</div>`;
         else if (status === 'wrong') fb = `<div class="feedback" aria-live="polite">${s.typeWrong}</div>`;
         else if (status === 'reveal') fb = `<div class="feedback" aria-live="polite">${s.typeReveal}</div>`;
         const promptCls = w.tr ? 'tr hword' : 'en defbox';

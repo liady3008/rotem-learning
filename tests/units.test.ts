@@ -41,3 +41,20 @@ describe('unit content', () => {
     });
   }
 });
+
+describe('quiz fairness', () => {
+  it('never offers a word that shares the same English meaning as a wrong option', async () => {
+    const { makeItem } = await import('../src/activities/vocab/quiz');
+    for (const unit of UNITS) {
+      const words = unit.stations.flatMap((s) => s.words ?? []);
+      for (const w of words) {
+        const twins = words.filter((x) => x !== w && x.def === w.def).map((x) => x.en);
+        if (!twins.length) continue;
+        for (let k = 0; k < 100; k++) {
+          const labels = makeItem('def2en', w, words).opts.map((o) => o.label);
+          for (const t of twins) expect(labels).not.toContain(t);
+        }
+      }
+    }
+  });
+});

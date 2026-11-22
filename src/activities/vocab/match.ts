@@ -2,7 +2,7 @@ import type { ActivityType } from '../../core/activity';
 import { chimeGood, chimeSoft, say } from '../../core/audio';
 import { str } from '../../core/i18n';
 import { esc, shuffle } from '../../core/util';
-import { otherSide, wordsOf } from './common';
+import { otherSide, spoken, wordsOf } from './common';
 
 export const match: ActivityType = {
   label: (s) => s.stepMatch,
@@ -20,7 +20,7 @@ export const match: ActivityType = {
       if (done.has(w) || flash) return;
       if (!sel || sel.side === side) {
         sel = { side, w };
-        if (side === 'l') say(w);
+        if (side === 'l') say(spoken(byEn.get(w)!));
         ctx.rerender();
         return;
       }
@@ -30,7 +30,7 @@ export const match: ActivityType = {
       if (a === b) {
         done.add(a);
         chimeGood();
-        say(a);
+        say(spoken(byEn.get(a)!));
       } else {
         chimeSoft();
         const f = { l: a, r: b };

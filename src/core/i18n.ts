@@ -176,6 +176,12 @@ export const STRINGS: Record<Lang, Strings> = { he, en };
 export const APP_LANG: Lang = 'he';
 
 let current: Lang = APP_LANG;
+let overrides: Partial<Strings> = {};
+
+/** Per-unit wording that replaces the language defaults. Pass {} for none. */
+export function setOverrides(o: Partial<Strings> | undefined): void {
+  overrides = o ?? {};
+}
 
 export function setLang(l: Lang): void {
   current = l;
@@ -183,5 +189,5 @@ export function setLang(l: Lang): void {
   document.documentElement.dir = l === 'he' ? 'rtl' : 'ltr';
 }
 
-export const str = (): Strings => STRINGS[current];
+export const str = (): Strings => ({ ...STRINGS[current], ...overrides });
 export const currentLang = (): Lang => current;

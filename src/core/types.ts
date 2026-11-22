@@ -1,3 +1,5 @@
+import type { Strings } from './i18n';
+
 export type Lang = 'he' | 'en';
 
 /** A vocabulary word. `tr` is the translation into the learner's native language (optional in advanced units). */
@@ -6,6 +8,8 @@ export interface Word {
   def: string;
   tr?: string;
   trAlt?: string;
+  /** What the learner types and what is read aloud, when it differs from `en` (for example en 'fall (fell) in love', typed 'fall in love'). */
+  typed?: string;
   /** Fill-in-the-gap sentence. `text` contains ___ ; `wrong` are options that clearly do not fit. */
   sentence?: { text: string; wrong: string[] };
 }
@@ -34,6 +38,8 @@ export interface Unit {
   trLang?: Lang;
   /** Visual theme key, applied as data-theme on <html>. */
   theme: string;
+  /** Per-unit interface wording that replaces the language defaults (for example the name of the final challenge). */
+  text?: Partial<Strings>;
   title: string;
   subtitle?: string;
   /** Short line shown above the map. */
