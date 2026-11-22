@@ -70,6 +70,9 @@ h2{font-size:26px}
 .tr.big{font-size:1.25em}
 
 /* home */
+.subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.subtab{font-weight:700}
+.subtab[aria-selected="true"]{background:var(--edge);color:var(--surface)}
 .hero{padding:4px 0 14px}
 .mapwrap{border:2.5px solid var(--edge);border-radius:26px;overflow:hidden;box-shadow:0 5px 0 var(--shadow);background:var(--map-bg)}
 .mapwrap svg{display:block;width:100%;height:auto}

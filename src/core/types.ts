@@ -30,6 +30,8 @@ export interface Station {
 
 export interface Unit {
   id: string;
+  /** Subject tab the unit appears under (id from src/subjects.ts). Defaults to the first subject. */
+  subject?: string;
   /** Free label for the kind of unit (vocab, grammar, ...). Not used by the engine; for humans and future filters. */
   kind: string;
   /** Language of the unit's interface text. Also sets page direction. */

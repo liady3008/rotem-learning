@@ -21,6 +21,10 @@ npm run build      # typecheck + production build into dist/
 
 The model: **Unit → Stations → Activities**. A station is a list of activities that run in order; the engine adds up their scores into 1 to 3 stars. A unit may also have a `summit` station that opens after all stations are done.
 
+## Subject tabs
+
+The home screen has one tab per subject, listed in `src/subjects.ts` (today: English). A unit appears under the tab named by its optional `subject` field; without it, the first subject. To add a subject, add it to `SUBJECTS` and set `subject: '<id>'` on its units.
+
 ## Add a vocabulary unit
 
 1. Copy `src/units/teamwork-1.ts` to `src/units/<name>.ts`, change the id, title and words.

@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest';
 import '../src/activities';
 import { hasActivity } from '../src/core/activity';
 import type { Station, Unit } from '../src/core/types';
+import { subjectById, subjectOf } from '../src/subjects';
 import { UNITS } from '../src/units';
 
 const allStations = (u: Unit): Station[] => [...u.stations, ...(u.summit ? [u.summit] : [])];
 
 describe('unit content', () => {
+  it('puts every unit under an existing subject tab', () => {
+    for (const u of UNITS) expect(subjectById(subjectOf(u)), u.id).toBeDefined();
+  });
+
   it('has unique unit ids', () => {
     const ids = UNITS.map((u) => u.id);
     expect(new Set(ids).size).toBe(ids.length);

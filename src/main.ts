@@ -6,12 +6,13 @@ import { toast } from './core/fx';
 import { Session } from './core/session';
 import { isSoundOn, isStationOpen, isSummitOpen, resetUnit, toggleSound, unitStars } from './core/storage';
 import type { Station, Unit, Word } from './core/types';
+import { DEFAULT_SUBJECT, subjectById, subjectOf } from './subjects';
 import { UNITS, unitById } from './units';
 import { homeHTML } from './views/home';
 import { sessionHTML } from './views/session';
 import { sheetHTML, unitHTML, unitWords } from './views/unit';
 
-type Route = { name: 'home' } | { name: 'unit'; id: string };
+type Route = { name: 'home'; subject: string } | { name: 'unit'; id: string };
 
 const app = document.getElementById('app') as HTMLElement;
 let route: Route = parseHash();
@@ -20,7 +21,9 @@ let sheet: Word | null = null;
 
 function parseHash(): Route {
   const m = /^#\/unit\/([\w-]+)$/.exec(location.hash);
-  return m && unitById(m[1]) ? { name: 'unit', id: m[1] } : { name: 'home' };
+  if (m && unitById(m[1])) return { name: 'unit', id: m[1] };
+  const sm = /^#\/s\/([\w-]+)$/.exec(location.hash);
+  return { name: 'home', subject: sm && subjectById(sm[1]) ? sm[1] : DEFAULT_SUBJECT };
 }
 const currentUnit = (): Unit | undefined => (route.name === 'unit' ? unitById(route.id) : undefined);
 
@@ -46,7 +49,7 @@ function render(top = false): void {
   setLang(unit ? unit.lang : APP_LANG);
   setOverrides(unit?.text);
   document.documentElement.dataset.theme = unit?.theme ?? 'adventure';
-  const body = session ? sessionHTML(session) : unit ? unitHTML(unit) : homeHTML();
+  const body = session ? sessionHTML(session) : unit ? unitHTML(unit) : homeHTML(route.name === 'home' ? route.subject : DEFAULT_SUBJECT);
   app.innerHTML = barHTML(unit) + body + (sheet && unit ? sheetHTML(unit, sheet) : '');
   if (top) window.scrollTo(0, 0);
   if (session && !session.finished) session.current.mounted?.();
@@ -78,7 +81,10 @@ function act(name: string, d: DOMStringMap, el: HTMLElement): void {
   const unit = currentUnit();
   switch (name) {
     case 'tohome':
-      location.hash = '#/';
+      location.hash = unit ? `#/s/${subjectOf(unit)}` : '#/';
+      return;
+    case 'subject':
+      location.hash = `#/s/${d.id}`;
       return;
     case 'openunit':
       location.hash = `#/unit/${d.id}`;
