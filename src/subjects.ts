@@ -10,7 +10,10 @@ export interface Subject {
  * Subject tabs on the home screen, in display order.
  * To add a subject: add it here, then give its units `subject: '<id>'` (see Unit.subject).
  */
-export const SUBJECTS: Subject[] = [{ id: 'english', label: 'אנגלית' }];
+export const SUBJECTS: Subject[] = [
+  { id: 'english', label: 'אנגלית' },
+  { id: 'math', label: 'מתמטיקה' },
+];
 
 export const DEFAULT_SUBJECT = SUBJECTS[0].id;
 

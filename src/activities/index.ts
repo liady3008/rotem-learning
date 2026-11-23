@@ -3,6 +3,8 @@ import { flashcards } from './vocab/flashcards';
 import { match } from './vocab/match';
 import { quiz } from './vocab/quiz';
 import { typing } from './vocab/typing';
+import { mathLearn } from './math/learn';
+import { mathPractice } from './math/practice';
 
 /**
  * Every activity type the app knows. A station lists these by name in its `activities`.
@@ -12,3 +14,5 @@ registerActivity('flashcards', flashcards);
 registerActivity('match', match);
 registerActivity('quiz', quiz);
 registerActivity('typing', typing);
+registerActivity('mathlearn', mathLearn);
+registerActivity('math', mathPractice);

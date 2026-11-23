@@ -236,3 +236,45 @@ h2{font-size:26px}
 :root[data-theme="tiktok-restaurant"] .card{border-radius:28px}
 :root[data-theme="tiktok-restaurant"] .bigstars{text-shadow:0 0 14px #ffe14d}
 :root[data-theme="tiktok-restaurant"] .confetti i{filter:saturate(1.4)}
+
+/* math: inline math, drawings, keypad, the way */
+.m{font-family:var(--f-en);font-weight:600;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
+.mnum{margin:0 0 6px;text-align:center}
+.mq{font-family:var(--f-he);font-size:22px;line-height:1.55;text-align:center;margin:0 0 14px}
+.mq .m{font-size:1.12em}
+.viz{margin:0 auto 14px;max-width:380px}
+.viz svg{display:block;width:100%;height:auto;direction:ltr;touch-action:manipulation}
+.viz .gl{stroke:#cfdbe5;stroke-width:1.2}
+.viz .ax{stroke:#17324d;stroke-width:2.4}
+.viz text{font-family:var(--f-en);fill:#17324d}
+.viz .tk{font-size:13px;text-anchor:middle}
+.viz .tk.zero{font-weight:700;font-size:15px}
+.viz .axn{font-size:17px;font-style:italic;font-weight:700}
+.viz .pl{font-size:18px;font-weight:700}
+.viz .deg{font-size:15px;font-weight:700;text-anchor:middle;fill:#c23e1f}
+.viz .wrongtag{fill:#c23e1f;font-weight:700}
+.viz-line,.viz-angle{background:var(--surface);border:2px solid var(--dim);border-radius:16px;padding:4px}
+.ptap{fill:transparent;cursor:pointer}
+.mask{font-family:var(--f-he);font-size:21px;margin:6px 0 12px;text-align:center;line-height:1.5}
+.mprev{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px}
+.mprev li{padding:8px 12px;border:2px solid var(--good);background:var(--good-bg);color:var(--good);border-radius:12px;font-size:17px;line-height:1.5}
+.ok-mark{font-weight:700}
+.opt.mopt{font-family:var(--f-he);font-size:22px;line-height:1.35}
+.opt.mopt .m{font-size:1.1em}
+.kpd-instr{text-align:center;margin:0 0 8px}
+.kout{min-height:62px;margin:0 0 12px;border:2.5px solid var(--edge);border-radius:16px;background:var(--surface);display:flex;align-items:center;justify-content:center;gap:10px;font-size:34px}
+.kout.empty .m{color:var(--muted)}
+.kout.shake{animation:shake .4s;background:var(--bad-bg)}
+.kunit{font-family:var(--f-he);font-size:20px;color:var(--muted)}
+.kpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;direction:ltr;margin:0 0 12px}
+.key{min-height:58px;border:2.5px solid var(--edge);border-radius:14px;background:var(--surface);box-shadow:0 3px 0 var(--shadow);font-family:var(--f-en);font-size:28px;font-weight:600;cursor:pointer;touch-action:manipulation;color:var(--ink)}
+.key:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--shadow)}
+.key.fn{background:var(--soft)}
+.key:disabled{opacity:.45}
+.hintbtn{display:block;margin:10px auto 0;font-size:17px}
+.way{margin:16px 0 0;padding:14px 16px;background:var(--soft);border:2.5px solid var(--edge);border-radius:16px}
+.way h3{font-size:21px;margin:0 0 8px}
+.way ol{margin:0;padding-inline-start:24px;display:flex;flex-direction:column;gap:8px;font-size:18px;line-height:1.55}
+.learn-title{font-size:24px;margin:0 0 12px;text-align:center}
+.learn{margin:0;padding-inline-start:22px;display:flex;flex-direction:column;gap:10px;font-size:19px;line-height:1.55}
+.mcard-q .feedback{min-height:0;margin-top:12px}
